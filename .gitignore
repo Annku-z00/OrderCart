@@ -8,12 +8,17 @@ config.local.yaml
 
 # Runtime data written by the app
 logs/
-state/
 review/
 failed/
 assets/
 exports/
 *.log
+# The resume-state store lives next to its own source module, so only the
+# database files are ignored - never state/state.py.
+state/*.db
+state/*.db-*
+state/*.sqlite
+state/*.sqlite-*
 
 # WAHA / Chromium session profiles (contain live WhatsApp credentials)
 .waha_sessions/
@@ -49,7 +54,7 @@ main_run2.txt
 trial_proof.txt
 confirm_*.txt
 example_master_list_*.txt
-logo.png
+/logo.png
 
 # Unrelated local folders (customer screenshots, the seller's label/Licence tool)
 test img/

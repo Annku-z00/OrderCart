@@ -1581,11 +1581,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 /* pywebview fires this on the injected bridge being ready */
-let pywebviewReadyDone = false;
-
 function pywebviewReady() {
-  if (pywebviewReadyDone) return;   // the safety-net timer can fire it twice
-  pywebviewReadyDone = true;
   const btn = $("btn-run");
   btn.disabled = false;
   btn.innerHTML = '<i class="fa-solid fa-play"></i>&nbsp;RUN';
