@@ -184,7 +184,7 @@ API + OCR with fakes and run in milliseconds.
 | `output/` | `NotepadWriter`, `CSVWriter` (schema: internal_id, order_id, name, address, status, source, confidence, timestamp), `corrections.py` | STABLE |
 | `labels/` | Shipping-label PDF generator: 4×6 inch page per order/copy, Code128 barcode, Ship-To + Sold-By blocks | `reportlab`; pure PDF, no GUI imports |
 | `updater.py` | GitHub update check (`check_for_update`) + `git pull --ff-only` (`apply_update`) | stdlib only; runner/fetch injectable for tests |
-| `tests/` | pytest, 874 tests, fakes for everything | run after any change |
+| `tests/` | pytest, 878 tests, fakes for everything | run after any change |
 | `logs/`, `state/`, `assets/`, `review/`, `failed/` | runtime data dirs (created by `ensure_dirs`) | `logs/ordercart.log` is the file log |
 | `review/` | Screenshots of chats that came out `TRUNC`/`FAILED` for manual fixing | "manual" source rows |
 | `requirements.txt` | Pinned deps (pandas, reportlab 5.1.0, opencv, pywebview 6.2.1, pyinstaller 6.11.0, pytest 8.3.3) | **No OCR dependency** — the Lens client is in-tree |
@@ -371,7 +371,7 @@ Backend ideas (need care, tests mandatory):
 ## 8. Acceptance checks the agent should run after changes
 
 ```bash
-py -3.12 -m pytest tests/ -q          # must be 874 passed
+py -3.12 -m pytest tests/ -q          # must be 878 passed
 py -3.12 -m py_compile main_web.py    # entry point compiles
 node --check ui/app.js                # if node available
 py -3.12 main_web.py                  # window opens, bridge connects
