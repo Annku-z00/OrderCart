@@ -183,10 +183,14 @@ API + OCR with fakes and run in milliseconds.
 | `state/state.py` | SQLite `processed` table (`INSERT OR REPLACE`), scoped per WhatsApp account | STABLE |
 | `output/` | `NotepadWriter`, `CSVWriter` (schema: internal_id, order_id, name, address, status, source, confidence, timestamp), `corrections.py` | STABLE |
 | `labels/` | Shipping-label PDF generator: 4×6 inch page per order/copy, Code128 barcode, Ship-To + Sold-By blocks | `reportlab`; pure PDF, no GUI imports |
-| `tests/` | pytest, 803 tests, fakes for everything | run after any change |
+| `updater.py` | GitHub update check (`check_for_update`) + `git pull --ff-only` (`apply_update`) | stdlib only; runner/fetch injectable for tests |
+| `tests/` | pytest, 874 tests, fakes for everything | run after any change |
 | `logs/`, `state/`, `assets/`, `review/`, `failed/` | runtime data dirs (created by `ensure_dirs`) | `logs/ordercart.log` is the file log |
 | `review/` | Screenshots of chats that came out `TRUNC`/`FAILED` for manual fixing | "manual" source rows |
 | `requirements.txt` | Pinned deps (pandas, reportlab 5.1.0, opencv, pywebview 6.2.1, pyinstaller 6.11.0, pytest 8.3.3) | **No OCR dependency** — the Lens client is in-tree |
+| `VERSION`, `make_build_info.py`, `build_info.json` | Installed version + the commit a build came from | `build_info.json` is generated, git-ignored |
+| `make_icon.py`, `app.ico`, `ui/app.ico` | Generated multi-size Windows icons from `ui/logo.png` | `build.bat` regenerates them when missing |
+| `.gitignore` | Keeps `config.yaml` (API key), runtime folders and WAHA sessions out of git | never commit `config.yaml` |
 
 ## 4. Hard Rules for the Agent
 
@@ -204,7 +208,7 @@ API + OCR with fakes and run in milliseconds.
    via `textContent`, never `innerHTML`.
 5. **Style follows surrounding code**: full module docstrings, type hints,
    dataclass-ish result objects, defensive try/except with log fallbacks.
-6. **Tests run with**: `py -3.12 -m pytest tests/ -q` (~13 s, fakes only).
+6. **Tests run with**: `py -3.12 -m pytest tests/ -q` (~30 s, fakes only).
 
 ## 5. The UI (PyWebview — matte dark + pastel)
 
@@ -219,18 +223,28 @@ API + OCR with fakes and run in milliseconds.
   export_orders_as, get_whatsapp_accounts, save_whatsapp_accounts,
   get_account_qr, get_failed_info, open_failed_folder,
   get/save_settings, open_logs_folder, test_image, select_image,
-  get_image_data_url).
+  get_image_data_url, check_updates, apply_update, open_repo).
 - Push channel: every runtime event is pushed Python → JS via
   `window.evaluate_js(f"appendLog(...)")`, `updateStats(t,s,f)`,
-  `updateProgress(index,total)`, `setRunning(running, paused)`, and
-  `loadOrders()`.
+  `updateProgress(index,total)`, `setRunning(running, paused)`,
+  `setUpdateInfo(payload)` and `loadOrders()`.
+- **Online updates**: `updater.check_for_update()` compares this install's
+  commit (`build_info.json`, else `git rev-parse HEAD`) with the head of
+  `Annku-z00/OrderCart@main`. `Api.check_updates()` caches the answer for an
+  hour and pushes `setUpdateInfo(...)`; the UI shows a lilac banner (dismissed
+  per commit in `localStorage`) and a Settings → **App updates** card.
+  `Api.apply_update()` refuses while a run is active and only runs
+  `git pull --ff-only` — a PyInstaller build has no `.git`, so it returns
+  `needs_reinstall` and the UI opens the GitHub page instead.
+  Config: `update.enabled / repo / branch / check_on_start`.
 - Views: Dashboard (KPI cards, run progress bar, range + **dry-run** +
   **reprocess** + RUN controls, Live Terminal), Orders (matte table + search +
   "Needs review" filter + order counter + badges + inline Order-ID correction +
   **Full list / Copy all / Export Excel / Export Notepad / Labels shortcut / Failed folder**),
   **Labels** (a dedicated view: printable-order picker + search + select all +
   seller details + Generate PDF), Logs (full terminal), Settings
-  (API url/key/session + **collect mode** + **WhatsApp account manager**),
+  (API url/key/session + **collect mode** + **WhatsApp account manager** +
+  **App updates**),
   Test Image (single-screenshot OCR preview).
 - **WhatsApp account manager** (Settings): every account is a WAHA session.
   The list shows the live status (`WORKING` / `SCAN_QR_CODE` / …) and the
@@ -357,7 +371,7 @@ Backend ideas (need care, tests mandatory):
 ## 8. Acceptance checks the agent should run after changes
 
 ```bash
-py -3.12 -m pytest tests/ -q          # must be 803 passed
+py -3.12 -m pytest tests/ -q          # must be 874 passed
 py -3.12 -m py_compile main_web.py    # entry point compiles
 node --check ui/app.js                # if node available
 py -3.12 main_web.py                  # window opens, bridge connects

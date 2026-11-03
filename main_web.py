@@ -153,9 +153,11 @@ class Api:
         self._failed_count = 0
 
         # Last GitHub update check (cached for an hour so opening the window
-        # twice does not hammer the API).
+        # twice does not hammer the API).  The lock makes the "check on start"
+        # call idempotent when pywebview fires the ready event twice.
         self._update_cache: Optional[Dict[str, Any]] = None
         self._update_checked_at = 0.0
+        self._update_lock = threading.Lock()
 
         self.logger.info("OrderCart web started (root=%s)", ROOT)
 
@@ -971,12 +973,16 @@ class Api:
         ):
             return self._update_cache
 
-        result = check_for_update(
-            repo=cfg["repo"], branch=cfg["branch"], root=ROOT
-        )
-        result["version"] = APP_VERSION
-        self._update_cache = result
-        self._update_checked_at = now
+        with self._update_lock:
+            # Another caller may have finished the check while we waited.
+            if not bool(force) and self._update_cache is not None:
+                return self._update_cache
+            result = check_for_update(
+                repo=cfg["repo"], branch=cfg["branch"], root=ROOT
+            )
+            result["version"] = APP_VERSION
+            self._update_cache = result
+            self._update_checked_at = time.time()
 
         if not result.get("ok"):
             self.logger.warning(

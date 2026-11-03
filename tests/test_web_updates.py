@@ -107,6 +107,32 @@ class TestCheckUpdates:
 
         assert len(calls) == 2
 
+    def test_two_simultaneous_calls_share_one_request(self, tmp_path, monkeypatch):
+        """The startup check is fired twice by pywebview - ask GitHub once."""
+        import threading
+
+        api = make_api(tmp_path, monkeypatch)
+        calls = []
+        started = threading.Event()
+        release = threading.Event()
+
+        def fake(**kwargs):
+            calls.append(kwargs)
+            started.set()
+            release.wait(2)
+            return fake_result()
+
+        monkeypatch.setattr(main_web, "check_for_update", fake)
+
+        worker = threading.Thread(target=api.check_updates, daemon=True)
+        worker.start()
+        assert started.wait(2)
+        release.set()
+        api.check_updates()
+        worker.join(2)
+
+        assert len(calls) == 1
+
     def test_the_config_repo_and_branch_reach_the_check(self, tmp_path, monkeypatch):
         api = make_api(tmp_path, monkeypatch)
         api.config["update"] = {"repo": "someone/fork", "branch": "dev"}

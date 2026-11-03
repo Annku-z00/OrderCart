@@ -82,6 +82,15 @@ class TestCurrentCommit:
         assert updater.current_commit(str(tmp_path), run=run) == LOCAL_SHA
         assert calls == [["rev-parse", "HEAD"]]
 
+    def test_a_clone_ignores_a_stale_build_stamp(self, tmp_path):
+        """A source checkout always trusts HEAD over a leftover build stamp."""
+        os.makedirs(os.path.join(str(tmp_path), ".git"))
+        _build_info(str(tmp_path), "c" * 40)
+
+        assert updater.current_commit(
+            str(tmp_path), run=lambda *a: (0, LOCAL_SHA, "")
+        ) == LOCAL_SHA
+
     def test_unknown_without_stamp_or_git(self, tmp_path):
         assert updater.current_commit(str(tmp_path), run=None) == ""
 

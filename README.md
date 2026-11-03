@@ -260,12 +260,40 @@ The result is `dist\OrderCart\OrderCart.exe` (ship the whole `dist\OrderCart\`
 folder). There are no OCR models to bundle — OCR runs on Google Lens, so the
 target machine just needs an internet connection.
 
-Keep this file next to the `.exe`:
+`build.bat` also runs `make_build_info.py`, which stamps `build_info.json`
+with the commit the build came from and copies it next to the `.exe` — that is
+what the update check compares against. `config.yaml` is optional: the app
+starts on the built-in defaults and writes one when Settings is saved (copy
+`config.example.yaml` next to the exe if you want to start from the template).
 
+### 5.1 Updates (git)
+
+On launch OrderCart asks GitHub for the newest commit on `main` and shows a
+small banner when it is newer than this install. **Settings → App updates**
+has **Check now**, **Update now** and **Open GitHub**.
+
+* **Source run / git clone** — `Update now` runs `git pull --ff-only` in the
+  project folder and asks you to restart (the running process keeps the old
+  code until then).
+* **Built copy** — there is no `.git` folder, so it cannot be patched in
+  place; the button is hidden and the banner opens
+  <https://github.com/Annku-z00/OrderCart> so you can download the newest
+  release.
+
+It compares **commits**, not version numbers: `build_info.json` for a build,
+`git rev-parse HEAD` for a clone, against the head of `main`. Configure it in
+`config.yaml`:
+
+```yaml
+update:
+  enabled: true
+  repo: Annku-z00/OrderCart
+  branch: main
+  check_on_start: true
 ```
-OrderCart.exe
-config.yaml
-```
+
+Only the public repository is contacted — orders, chats and settings never
+leave the machine, and nothing is downloaded during a check.
 
 ---
 

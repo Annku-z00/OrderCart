@@ -148,18 +148,17 @@ def current_commit(
 ) -> str:
     """The commit this install came from ("" when it cannot be known).
 
-    ``build_info.json`` wins — it is the only stamp a PyInstaller build has.
-    A source checkout falls back to ``git rev-parse HEAD``.
+    A git checkout asks git — that is always the truth, and it keeps a stale
+    generated ``build_info.json`` from making a source run look out of date.
+    A PyInstaller build has no ``.git``, so it falls back to the stamp.
     """
     root = root or _default_root()
-    stamped = str(_read_build_info(root).get("commit") or "").strip()
-    if stamped:
-        return stamped
-    if not os.path.isdir(os.path.join(root, ".git")):
-        return ""
-    runner = run or _run_git
-    code, out, _err = runner(["rev-parse", "HEAD"], root, 10)
-    return out if code == 0 and out else ""
+    if os.path.isdir(os.path.join(root, ".git")):
+        runner = run or _run_git
+        code, out, _err = runner(["rev-parse", "HEAD"], root, 10)
+        if code == 0 and out:
+            return out
+    return str(_read_build_info(root).get("commit") or "").strip()
 
 
 def is_git_checkout(root: Optional[str] = None) -> bool:
