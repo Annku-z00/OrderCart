@@ -191,3 +191,47 @@ class TestOpenRepo:
 
         assert result["ok"] is True
         assert opened == ["https://github.com/Annku-z00/OrderCart"]
+
+
+class TestUpdateUi:
+    """The script and the page must agree on every id the banner touches."""
+
+    ELEMENTS = (
+        "update-banner",
+        "update-banner-text",
+        "update-banner-apply",
+        "update-banner-notes",
+        "update-banner-close",
+        "btn-check-updates",
+        "btn-apply-update",
+        "btn-open-github",
+        "update-current",
+        "update-latest",
+        "update-status",
+        "updates-msg",
+        "app-version",
+    )
+
+    def test_every_update_element_exists_in_both_files(self):
+        import os
+
+        root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        with open(os.path.join(root, "ui", "index.html"), encoding="utf-8") as fh:
+            html = fh.read()
+        with open(os.path.join(root, "ui", "app.js"), encoding="utf-8") as fh:
+            script = fh.read()
+
+        for element in self.ELEMENTS:
+            assert f'id="{element}"' in html, element
+            assert f'"{element}"' in script, element
+
+    def test_the_python_side_pushes_the_update_payload(self, tmp_path, monkeypatch):
+        api = make_api(tmp_path, monkeypatch)
+        window = FakeWindow()
+        api.bind_window(window)
+
+        api._push_update({"ok": True, "latest_short": "abc1234"})
+
+        assert len(window.snippets) == 1
+        assert window.snippets[0].startswith("setUpdateInfo(")
+        assert "abc1234" in window.snippets[0]
