@@ -1,0 +1,38 @@
+# internal_id: 12988
+# engine: Google Lens via chrome-lens-py (real capture, 17 Oct 2026)
+# source: assets/12988/ media AC5B5324.jpg
+# exercises: Hindi UI: OCR order details + cropped id on the Devanagari label
+# ---
+2:52
+5G+
+167
+ऑर्डर विवरण
+HELP
+WITH PHOTOS,
+SMALL SIZE
+ऑर्डर #34187320244...
+Royal Photo Frame 5*7 ...
+7014965655
+BUY 1
+Vo
+Free Size Cash ₹162
+All issue easy returns
+Order Placed
+Delivery by Wed, 21 Oct
+Shipping Soon!
+Ordered
+Shipped Out for Deliver Delivery
+14 Oct
+16 Oct
+21 Oct
+21 Oct
+5000+ Users rated 4 star for this
+product
+Cancellation available
+till shipping!
+Cancel Order
+आपका पेमेंट करने का सिक्का: on Delivery.
+₹162
+Switch to UPI
+₹142
+₹20 बचाएं

@@ -1,0 +1,187 @@
+whatsapp_api:
+  provider: waha
+  base_url: http://localhost:3001
+  api_key: ""
+  session_name: default
+  accounts:
+  - name: default
+    label: Personal
+    enabled: true
+  - name: sales1
+    label: Shop A
+    enabled: false
+  - name: sales2
+    label: Shop B
+    enabled: false
+  - name: sales3
+    label: Shop C
+    enabled: false
+  chat_name_overrides:
+    '99999': Jeetu Kumawat
+timeouts:
+  api_call: 30
+  media_download: 120
+ocr:
+  upscale_factor: 1
+  lens_timeout: 15
+  lens_retries: 2
+  lens_retry_backoff: 0.5
+  jpeg_quality: 90
+  max_pixels: 1500000
+  max_dimension: 1600
+  focus_pass: true
+  focus_ratio: 0.45
+  # Reuse an earlier Lens read of the same image (Reprocess runs become
+  # near-instant).  Entries live in assets/.ocr_cache/.
+  cache: true
+extraction:
+  order_id_regex_primary: (?<!\d)(\d{15,18})(?:_\d+)?(?!\d)
+  order_id_regex_generic: \b\d{6,20}\b
+  pin_code_regex: \b\d{6}\b
+  phone_regex: \b[6-9]\d{9}\b
+  order_id_labels:
+  - Sub OrderID
+  - Sub Order ID
+  - Sub-Order No
+  - Sub Order No
+  - Order ID
+  - Order No
+  - Order Number
+  - OrderId
+  - 'Order #'
+  - Order#
+  - Order I'd
+  - Order I’d
+  - 'Order:'
+  - ऑर्डर आईडी
+  - ऑर्डर संख्या
+  - ऑर्डर नंबर
+  - ऑर्डर नं
+  - 'ऑर्डर #'
+  - 'ऑर्डर:'
+  - आर्डर आईडी
+  - आर्डर
+  - ஆர்டர் ஐடி
+  - ஆர்டர் எண்
+  - 'ஆர்டர் #'
+  - 'ஆர்டர்:'
+  - ఆర్డర్ ఐడి
+  - ఆర్డర్ ఐడీ
+  - ఆర్డర్ నంబర్
+  - 'ఆర్డర్ #'
+  - 'ఆర్డర్:'
+  - অর্ডার আইডি
+  - অর্ডার নম্বর
+  - অর্ডার নং
+  - 'অর্ডার #'
+  - 'অর্ডার:'
+  name_labels:
+  - Customer Name
+  - Name
+  - Ship to
+  - Deliver to
+  - Receiver
+  - Sold to
+  - Delivery Address
+  - Customer
+  - ग्राहक
+  - பெயர்
+  - పేరు
+  - নাম
+  address_labels:
+  - Address
+  - Shipping Address
+  - Deliver to
+  - Delivery Address
+  - डिलीवरी का पता
+  - डिलीवरी पता
+  - शिपिंग पता
+  - पता
+  - டெலிவரி முகவரி
+  - விநியோக முகவரி
+  - முகவரி
+  - డెలివరీ అడ్రసు
+  - డెలివరీ చిరునామా
+  - చిరునామా
+  - ডেলিভারি ঠিকানা
+  - ডেলিভারি অ্যাড্রেস
+  - ঠিকানা
+  ignore_words:
+  - Meesho
+  - Flipkart
+  - Amazon
+  - Invoice
+  - Order
+  - Address
+  - Change
+  - Supplier
+  non_order_labels:
+  - SKU
+  - Model No
+  - Model
+  - Style
+  - Item No
+  - Item Code
+  - Product Code
+  - Product ID
+  - Qty
+  - Quantity
+  - Size
+  - MRP
+  - AWB
+  - Tracking
+  - Invoice No
+  - GST
+  - HSN
+  eta_labels:
+  - ETA
+  - Expected
+  - Arriving
+  - Ship by
+  - Delivery
+  order_id_truncate_length: 0
+  order_id_truncate_from: first
+  multi_order_output: true
+  truncated_id_min_digits: 6
+  cropped_id_is_complete: true
+  collect: single
+  min_unlabelled_id_digits: 16
+  max_unlabelled_id_digits: 18
+  list_page_max_candidates: 3
+  require_order_id_label: true
+  full_id_min_digits: 16
+  max_labelled_id_digits: 18
+  partial_id_prefix: true
+  reject_patterns:
+    phone: true
+    pin: true
+    price: true
+    date: true
+    product: true
+    eta: true
+    concatenation: true
+  text_message_limit: 50
+  address_max_chars: 400
+  truncated_min_digits: 1
+  truncated_max_digits: 20
+output:
+  default_file: orders.csv
+  date_format: '%Y-%m-%d %H:%M:%S'
+  notepad_file: test_jeetu.txt
+  notepad_mode: append
+processing:
+  delay_between_chats: 1.0
+  max_retries: 3
+  retry_backoff: 2.0
+  max_messages_per_chat: 50
+  max_images_per_chat: 0
+
+# Online update check (updater.py): compare this install's commit with the
+# newest commit on the public GitHub repo and show a banner when they differ.
+# 'Update now' only runs 'git pull --ff-only', so it works for a git clone.
+update:
+  enabled: true
+  repo: Annku-z00/OrderCart
+  branch: main
+  check_on_start: true
+

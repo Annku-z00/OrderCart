@@ -1,0 +1,33 @@
+# FrameFlow v1 — pinned dependencies
+# Python 3.11+
+
+# --- Core HTTP / config ---
+requests==2.32.3
+PyYAML==6.0.2
+# Optional: keeps the comments in config.yaml when the app saves settings.
+ruamel.yaml==0.18.6
+
+# --- Data / output ---
+pandas==2.2.3
+# Shipping-label PDFs (Orders → Labels); supplies the Code128 barcode too.
+reportlab==5.1.0
+
+# --- Image processing / OCR ---
+opencv-python==4.10.0.84
+numpy==1.26.4
+Pillow==10.4.0
+
+# --- OCR engine: Google Lens, implemented in-tree ---
+# The Lens upload protocol is written by hand in ocr/proto.py + ocr/lens.py
+# (a small protobuf codec and one POST), so there is NO OCR dependency to
+# install: no paddleocr, no tesseract, no chrome-lens-py.  OCR still needs
+# internet - the image is uploaded to Google's Lens endpoint.
+
+# --- Packaging ---
+pyinstaller==6.11.0
+
+# --- Desktop GUI (cosmic dashboard) ---
+pywebview==6.2.1
+
+# --- Testing ---
+pytest==8.3.3

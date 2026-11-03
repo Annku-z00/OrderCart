@@ -1,0 +1,63 @@
+# ---------------------------------------------------------------------------
+# OrderCart - what never belongs in the repository
+# ---------------------------------------------------------------------------
+
+# Local settings: config.yaml holds the WAHA/Evolution API key.
+config.yaml
+config.local.yaml
+
+# Runtime data written by the app
+logs/
+state/
+review/
+failed/
+assets/
+exports/
+*.log
+
+# WAHA / Chromium session profiles (contain live WhatsApp credentials)
+.waha_sessions/
+.waha/
+.wwebjs_auth/
+.sessions/
+
+# Output files the app produces
+orders.csv
+test_jeetu.txt
+output/orders_trial.txt
+
+# Build artefacts
+build/
+dist/
+build_info.json
+ui/app-icon-preview.png
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+
+# Scratch files from the working folder (screenshots, trial runs, demos)
+*.jpg
+qr_default.png
+main_run2.txt
+trial_proof.txt
+confirm_*.txt
+example_master_list_*.txt
+logo.png
+
+# Unrelated local folders (customer screenshots, the seller's label/Licence tool)
+test img/
+VkVFUl9*/
+
+# Editors / OS
+.vscode/
+.idea/
+Thumbs.db
+desktop.ini
+.DS_Store

@@ -1,0 +1,694 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>OrderCart — WhatsApp Order Extractor</title>
+
+  <!-- ===== Typography: Plus Jakarta Sans (UI) + JetBrains Mono (logs/IDs) ===== -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="style.css" />
+  <link rel="icon" href="app.ico" type="image/x-icon" />
+  <!-- FontAwesome for icons (placeholder set; swap for local icons any time) -->
+  <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+</head>
+<body>
+
+  <div class="app">
+
+    <!-- ================= LEFT SIDEBAR ================= -->
+    <aside class="sidebar">
+      <div class="brand">
+        <img src="logo.png" alt="OrderCart logo" class="brand-logo" />
+        <span class="brand-name">OrderCart</span>
+      </div>
+
+      <!-- primary navigation -->
+      <nav class="nav nav-top">
+        <a class="nav-link active" data-view="dashboard" href="#">
+          <i class="fa-solid fa-gauge-high"></i><span>Dashboard</span>
+        </a>
+        <a class="nav-link" data-view="orders" href="#">
+          <i class="fa-solid fa-list"></i><span>Orders</span>
+        </a>
+        <a class="nav-link nav-link-dev" data-view="labels" href="#"
+           aria-disabled="true"
+           title="Under development — finish OCR + order-ID extraction first">
+          <i class="fa-solid fa-tags"></i><span>Labels</span>
+          <span class="nav-dev-badge">DEV</span>
+        </a>
+        <a class="nav-link" data-view="test-image" href="#">
+          <i class="fa-solid fa-camera"></i><span>Test Image</span>
+        </a>
+      </nav>
+
+      <!-- pastel-lilac status / promo card -->
+      <div class="promo-card">
+        <div class="promo-top">
+          <img src="logo.png" alt="Noir Detective mascot" class="promo-mascot" />
+          <div class="promo-text">
+            <strong>Google Lens OCR</strong>
+            <span>Cloud OCR · Google Lens only</span>
+          </div>
+        </div>
+        <div class="status-pill" id="engine-status">
+          <span class="dot" id="engine-dot"></span>
+          <span id="engine-text">Idle</span>
+        </div>
+      </div>
+
+      <!-- bottom navigation -->
+      <nav class="nav nav-bottom">
+        <a class="nav-link" data-view="logs" href="#">
+          <i class="fa-solid fa-terminal"></i><span>Logs</span>
+        </a>
+        <a class="nav-link" data-view="settings" href="#">
+          <i class="fa-solid fa-gear"></i><span>Settings</span>
+        </a>
+      </nav>
+
+      <div class="sidebar-footer">
+        <span class="version">v<span id="app-version">1.1.0</span> · PyWebview</span>
+      </div>
+    </aside>
+
+    <!-- ================= MAIN AREA ================= -->
+    <main class="main main-content">
+
+      <!-- Top header bar -->
+      <header class="header-bar">
+        <div class="header-greeting">
+          <h1>Hello, Operator</h1>
+          <p>Check &amp; maintain your WhatsApp order extraction status.</p>
+        </div>
+        <div class="quick-actions">
+          <button class="icon-btn" id="btn-open-logs-folder" title="Open logs folder">
+            <i class="fa-solid fa-folder-open"></i>
+          </button>
+          <button class="icon-btn" id="btn-refresh-orders" title="Refresh orders">
+            <i class="fa-solid fa-arrows-rotate"></i>
+          </button>
+        </div>
+      </header>
+
+      <!-- Online update notice: a newer commit is on GitHub -->
+      <div class="update-banner hidden" id="update-banner">
+        <i class="fa-solid fa-cloud-arrow-down update-banner-icon"></i>
+        <span class="update-banner-text" id="update-banner-text"></span>
+        <button class="btn-mini" id="update-banner-apply">Update now</button>
+        <button class="btn-mini" id="update-banner-notes">What's new</button>
+        <button class="icon-btn" id="update-banner-close" title="Dismiss">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <!-- Non-blocking status banner: WhatsApp API offline / config problems -->
+      <div class="app-banner hidden" id="app-banner">
+        <span class="app-banner-text" id="app-banner-text"></span>
+        <button class="btn-mini" id="app-banner-retry">Retry</button>
+        <button class="icon-btn" id="app-banner-close" title="Dismiss">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <!-- ============ DASHBOARD VIEW ============ -->
+      <section class="view" id="view-dashboard">
+
+        <!-- Top row: solid pastel KPI cards -->
+        <div class="kpi-row">
+          <div class="kpi kpi-total">
+            <div class="kpi-head">
+              <span>Total Processed <em id="kpi-total-range"></em></span>
+            </div>
+            <div class="kpi-label">Chats scanned</div>
+            <div class="kpi-value" id="kpi-total">0</div>
+            <div class="kpi-corner"><i class="fa-solid fa-arrow-right-long"></i></div>
+          </div>
+
+          <div class="kpi kpi-success">
+            <div class="kpi-head">
+              <span>Success</span>
+            </div>
+            <div class="kpi-label">Order IDs extracted</div>
+            <div class="kpi-value" id="kpi-success">0</div>
+            <div class="kpi-corner"><i class="fa-solid fa-arrow-right-long"></i></div>
+          </div>
+
+          <div class="kpi kpi-failed">
+            <div class="kpi-head">
+              <span>Failed</span>
+            </div>
+            <div class="kpi-label">Needs review</div>
+            <div class="kpi-value" id="kpi-failed">0</div>
+            <div class="kpi-corner"><i class="fa-solid fa-arrow-right-long"></i></div>
+          </div>
+        </div>
+
+        <!-- Run progress (index / total pushed by the orchestrator) -->
+        <div class="card progress-card" id="progress-card" hidden>
+          <div class="progress-head">
+            <span class="progress-label">
+              <i class="fa-solid fa-bars-progress"></i>&nbsp;Run progress
+            </span>
+            <span class="progress-text" id="progress-text">0 / 0</span>
+          </div>
+          <div class="progress-track">
+            <div class="progress-fill" id="progress-fill"></div>
+          </div>
+        </div>
+
+        <!-- Middle row: controls -->
+        <div class="card controls">
+          <div class="field">
+            <label for="start-id">Start ID</label>
+            <input id="start-id" type="number" min="0" placeholder="12988" value="12988" />
+          </div>
+          <div class="field">
+            <label for="end-id">End ID</label>
+            <input id="end-id" type="number" min="0" placeholder="13010" value="13010" />
+          </div>
+
+          <div class="field toggle-field">
+            <label>Dry Run</label>
+            <label class="toggle" title="No output, no state change">
+              <input type="checkbox" id="dry-run" />
+              <span class="track"><span class="thumb"></span></span>
+              <span class="toggle-text" id="dry-run-text">Off</span>
+            </label>
+          </div>
+
+          <div class="field toggle-field">
+            <label>Reprocess</label>
+            <label class="toggle" title="Scan chats that were already done again">
+              <input type="checkbox" id="reprocess" />
+              <span class="track"><span class="thumb"></span></span>
+              <span class="toggle-text" id="reprocess-text">Off</span>
+            </label>
+          </div>
+
+          <div class="run-group">
+            <button class="btn-run" id="btn-run" disabled title="Waiting for engine…">
+              <i class="fa-solid fa-play"></i>&nbsp;RUN
+            </button>
+            <button class="btn-ghost btn-pause" id="btn-pause" disabled>
+              <i class="fa-solid fa-pause"></i>&nbsp;Pause
+            </button>
+            <button class="btn-ghost btn-stop" id="btn-stop" disabled>
+              <i class="fa-solid fa-stop"></i>&nbsp;Stop
+            </button>
+          </div>
+        </div>
+
+        <!-- Bottom row: live terminal -->
+        <div class="card terminal-card">
+          <div class="terminal-head">
+            <span class="traffic"><i></i><i></i><i></i></span>
+            <span class="terminal-title">Live Terminal</span>
+            <button class="mini-btn" id="btn-clear-log" title="Clear log">
+              <i class="fa-solid fa-broom"></i>
+            </button>
+          </div>
+          <div class="terminal" id="terminal">
+            <div class="term-line dim">OrderCart ready. Press RUN to start extraction…</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ ORDERS VIEW ============ -->
+      <section class="view hidden" id="view-orders">
+        <div class="orders-toolbar">
+          <div class="search-box">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <input id="orders-search" type="text" placeholder="Search Order ID / Internal ID / name…" autocomplete="off" />
+          </div>
+          <label class="date-filter date-mode" title="Choose which date the filter uses">
+            <select id="orders-date-mode" aria-label="Date filter basis">
+              <option value="last">Last scanned</option>
+              <option value="order">Order date</option>
+            </select>
+          </label>
+          <label class="date-filter" title="Show only the orders from one date">
+            <i class="fa-regular fa-calendar"></i>
+            <select id="orders-date" aria-label="Filter orders by date">
+              <option value="">All dates</option>
+            </select>
+          </label>
+          <button class="btn-ghost filter-btn" id="btn-review-filter"
+                  aria-pressed="false" title="Show only rows that need a correction (ambiguous / partial / TRUNC / FAILED)">
+            <i class="fa-solid fa-triangle-exclamation"></i>&nbsp;Needs review
+            <span class="filter-count" id="review-count">0</span>
+          </button>
+
+          <span class="toolbar-gap"></span>
+
+          <span class="orders-total" id="orders-total" title="How many orders are visible / in the list">0 orders</span>
+          <span class="orders-updated" id="orders-updated"></span>
+
+          <button class="btn-ghost" id="btn-refresh-orders-list" title="Reload the orders from the output file">
+            <i class="fa-solid fa-arrows-rotate"></i>&nbsp;Refresh
+          </button>
+          <button class="btn-ghost" id="btn-full-list"
+                  title="Show every order (id, order id, name, address) as one copyable list">
+            <i class="fa-solid fa-list-ul"></i>&nbsp;Full list
+          </button>
+          <button class="btn-ghost" id="btn-copy-all"
+                  title="Copy every visible row (id, order id, name, address) to the clipboard">
+            <i class="fa-regular fa-copy"></i>&nbsp;Copy all
+          </button>
+          <button class="btn-ghost" id="btn-export-xlsx"
+                  title="Export the whole list to an Excel workbook">
+            <i class="fa-solid fa-file-excel"></i>&nbsp;Export Excel
+          </button>
+          <button class="btn-ghost" id="btn-export-txt"
+                  title="Export the master list: internal id + TAB + one value per line">
+            <i class="fa-solid fa-file-lines"></i>&nbsp;Export Notepad
+          </button>
+          <button class="btn-ghost label-btn" id="btn-labels" disabled
+                  title="Under development — finish OCR + order-ID extraction first">
+            <i class="fa-solid fa-tags"></i>&nbsp;Labels
+            <span class="nav-dev-badge">DEV</span>
+          </button>
+          <button class="btn-ghost" id="btn-open-failed" title="Open the folder with the pictures that had no order id, name or address">
+            <i class="fa-solid fa-folder-open"></i>&nbsp;Failed
+            <span class="filter-count" id="failed-count">0</span>
+          </button>
+          <button class="btn-ghost" id="btn-open-csv" title="Open the folder with the output files">
+            <i class="fa-solid fa-folder-open"></i>&nbsp;Open folder
+          </button>
+        </div>
+
+        <div class="card orders-card">
+          <table class="orders-table">
+            <thead>
+              <tr>
+                <th>Internal ID</th>
+                <th>Order ID</th>
+                <th>Name</th>
+                <th>Address</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="orders-tbody">
+              <tr class="table-empty"><td colspan="5">No orders yet — press RUN on the Dashboard.</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Full list: every order as plain text, one click to copy -->
+        <div class="full-list-overlay hidden" id="full-list-overlay">
+          <div class="full-list-panel">
+            <div class="full-list-head">
+              <span class="full-list-title">
+                <i class="fa-solid fa-list-ul"></i>&nbsp;
+                Full list — <span id="full-list-count">0</span> orders
+              </span>
+              <span class="full-list-actions">
+                <button class="btn-ghost" id="btn-full-list-copy">
+                  <i class="fa-regular fa-copy"></i>&nbsp;Copy all
+                </button>
+                <button class="btn-ghost" id="btn-full-list-download">
+                  <i class="fa-solid fa-file-lines"></i>&nbsp;Export Notepad
+                </button>
+                <button class="icon-btn" id="btn-full-list-close" title="Close">
+                  <i class="fa-solid fa-xmark"></i>
+                </button>
+              </span>
+            </div>
+            <textarea id="full-list-text" class="full-list-text" readonly
+                      spellcheck="false"
+                      aria-label="The full list of orders"></textarea>
+          </div>
+        </div>
+
+      </section>
+
+      <!-- ============ LABELS VIEW ============ -->
+      <section class="view hidden" id="view-labels">
+        <div class="labels-hero">
+          <div class="labels-hero-text">
+            <h2><i class="fa-solid fa-tags"></i>&nbsp;Shipping labels</h2>
+            <p class="dim">
+              Pick the orders to print, check the seller details, then generate a
+              4 × 6 inch PDF (one label per page, Code128 barcode).
+            </p>
+          </div>
+          <div class="labels-hero-actions">
+            <span class="orders-total" id="labels-ready-count">0 ready</span>
+            <button class="btn-ghost" id="btn-labels-refresh"
+                    title="Reload the orders and seller details">
+              <i class="fa-solid fa-arrows-rotate"></i>&nbsp;Refresh
+            </button>
+            <button class="btn-ghost" id="btn-labels-open-folder"
+                    title="Open the exports folder with the generated PDFs">
+              <i class="fa-solid fa-folder-open"></i>&nbsp;Open exports
+            </button>
+          </div>
+        </div>
+
+        <div class="labels-layout">
+          <!-- left: pick the orders -->
+          <div class="card labels-orders-card">
+            <div class="labels-orders-head">
+              <div class="search-box">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input id="labels-search" type="text"
+                       placeholder="Search Order ID / Internal ID / name…"
+                       autocomplete="off" />
+              </div>
+              <label class="labels-check">
+                <input id="labels-select-all" type="checkbox" />
+                Select all ready
+              </label>
+              <span class="toolbar-gap"></span>
+              <span class="labels-selected-count" id="labels-selected-count">0 selected</span>
+            </div>
+
+            <div class="labels-table-wrap">
+              <table class="orders-table labels-table">
+                <thead>
+                  <tr>
+                    <th class="labels-pick-col">
+                      <span class="sr-only">Include</span>
+                    </th>
+                    <th>Order ID</th>
+                    <th>Name</th>
+                    <th>Address</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody id="labels-tbody">
+                  <tr class="table-empty">
+                    <td colspan="5">Loading the orders…</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- right: seller details + generate -->
+          <aside class="card labels-settings-card">
+            <div class="labels-settings-head">
+              <h3>Seller details</h3>
+              <button class="btn-ghost" id="btn-labels-save"
+                      title="Save the seller details to config.yaml">
+                <i class="fa-solid fa-floppy-disk"></i>&nbsp;Save
+              </button>
+            </div>
+
+            <p class="dim labels-hint">
+              Only rows with a usable Order ID <strong>and a customer address</strong>
+              are printed; TRUNC / FAILED / address-less rows are skipped.
+              If the list has no addresses, press <strong>Use name + address</strong>,
+              tick <strong>Reprocess</strong> on the Dashboard, and run the chats again.
+            </p>
+
+            <div class="labels-body">
+              <div class="labels-grid">
+                <div class="field">
+                  <label for="label-brand">Brand line</label>
+                  <input id="label-brand" type="text" placeholder="MEESHO" />
+                </div>
+                <div class="field">
+                  <label for="label-seller-name">Seller name</label>
+                  <input id="label-seller-name" type="text" placeholder="VEER HANUMAN CRAFTS" />
+                </div>
+              </div>
+
+              <div class="field">
+                <label for="label-seller-address">Seller address</label>
+                <textarea id="label-seller-address" rows="3"
+                          placeholder="Shop / street, city, state - PIN"></textarea>
+              </div>
+
+              <div class="labels-grid">
+                <div class="field">
+                  <label for="label-seller-phone">Seller phone</label>
+                  <input id="label-seller-phone" type="text" placeholder="98765 43210" />
+                </div>
+                <div class="field">
+                  <label for="label-seller-gstin">GSTIN (optional)</label>
+                  <input id="label-seller-gstin" type="text" placeholder="22AAAAA0000A1Z5" />
+                </div>
+              </div>
+
+              <div class="labels-grid">
+                <div class="field">
+                  <label for="label-copies">Copies per order</label>
+                  <input id="label-copies" type="number" min="1" max="50" step="1" value="1" />
+                </div>
+                <div class="field">
+                  <label for="label-footer">Footer note</label>
+                  <input id="label-footer" type="text" placeholder="Thank you for shopping with us!" />
+                </div>
+              </div>
+
+              <label class="labels-check">
+                <input id="label-barcode" type="checkbox" checked />
+                Include the Code128 barcode
+              </label>
+
+              <div class="labels-actions">
+                <button class="btn-ghost" id="btn-labels-collect-all"
+                        title="Set Settings → Collect per row to All so every row carries the customer name + address (then reprocess the chats)">
+                  <i class="fa-solid fa-wand-magic-sparkles"></i>&nbsp;Use name + address
+                </button>
+                <button class="btn-run" id="btn-labels-generate"
+                        title="Generate a PDF for the selected orders">
+                  <i class="fa-solid fa-file-pdf"></i>&nbsp;Generate PDF
+                </button>
+              </div>
+              <p class="dim labels-msg" id="labels-msg"></p>
+            </div>
+          </aside>
+        </div>
+      </section>
+
+      <!-- ============ TEST IMAGE VIEW ============ -->
+      <div class="view hidden" id="view-test-image">
+        <div class="card test-image-card">
+          <div class="test-image-head">
+            <h2><i class="fa-solid fa-camera-retro"></i>&nbsp; Test a Single Image</h2>
+            <p class="dim">Pick a Meesho / order screenshot and run the OCR engine + extractor on it.</p>
+          </div>
+
+          <div class="test-image-actions">
+            <button class="btn-select-image" id="btn-select-image">
+              <i class="fa-solid fa-cloud-arrow-up"></i>&nbsp;Select Image
+            </button>
+            <button class="btn-ghost" id="btn-clear-image">
+              <i class="fa-solid fa-trash-can"></i>&nbsp;Clear
+            </button>
+            <span class="test-image-path dim" id="test-image-path"></span>
+          </div>
+
+          <div class="test-image-body">
+            <!-- left: preview -->
+            <div class="test-image-preview-wrap">
+              <img id="test-image-preview" class="hidden" alt="Selected image preview" />
+              <div class="preview-placeholder" id="test-image-placeholder">
+                <i class="fa-regular fa-image"></i>
+                <span>No image selected</span>
+              </div>
+            </div>
+
+            <!-- right: loading / results / empty / error -->
+            <div class="test-image-results">
+              <div class="test-image-loader hidden" id="test-image-loader">
+                <div class="particle-loader">
+                  <span></span><span></span><span></span><span></span><span></span>
+                  <span></span><span></span><span></span><span></span><span></span>
+                </div>
+                <p class="dim">Reading the image…</p>
+              </div>
+
+              <div class="test-image-result hidden" id="test-image-result">
+                <div class="result-head">
+                  <span class="result-caption">Extracted Order ID</span>
+                  <span class="badge badge-other" id="test-image-badge">—</span>
+                </div>
+
+                <div class="result-order-id" id="test-image-order-id">—</div>
+
+                <div class="result-meta">
+                  <div class="result-meta-item">
+                    <span class="dim">Name</span><strong id="test-image-name">—</strong>
+                  </div>
+                  <div class="result-meta-item">
+                    <span class="dim">Address</span><strong id="test-image-address">—</strong>
+                  </div>
+                  <div class="result-meta-item">
+                    <span class="dim">OCR Confidence</span><strong id="test-image-confidence">—</strong>
+                  </div>
+                </div>
+
+                <div class="raw-text-block">
+                  <div class="raw-text-head"><i class="fa-solid fa-terminal"></i>&nbsp;Raw OCR Text</div>
+                  <pre class="raw-text" id="test-image-raw">—</pre>
+                </div>
+              </div>
+
+              <div class="test-image-empty" id="test-image-empty">
+                <i class="fa-solid fa-magnifying-glass-chart"></i>
+                <p class="dim">Select an image to see the extracted order details here.</p>
+              </div>
+
+              <div class="test-image-error hidden" id="test-image-error"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ============ LOGS VIEW ============ -->
+      <section class="view hidden" id="view-logs">
+        <div class="card terminal-card terminal-full">
+          <div class="terminal-head">
+            <span class="traffic"><i></i><i></i><i></i></span>
+            <span class="terminal-title">Full Session Log</span>
+          </div>
+          <div class="terminal" id="terminal-logs"></div>
+        </div>
+      </section>
+
+      <!-- ============ SETTINGS VIEW ============ -->
+      <section class="view hidden" id="view-settings">
+        <div class="card settings-card">
+          <h2><i class="fa-solid fa-users"></i>&nbsp; WhatsApp accounts</h2>
+          <p class="dim settings-note" style="margin-top:0;margin-bottom:14px;">
+            Tick every WhatsApp account you want to collect orders from.
+            A run then visits them one after the other.
+          </p>
+
+          <div class="accounts-list" id="accounts-list">
+            <div class="dim">Loading the accounts…</div>
+          </div>
+
+          <div class="accounts-add">
+            <input id="account-new-name" type="text" placeholder="session name (e.g. sales1)" autocomplete="off" />
+            <input id="account-new-label" type="text" placeholder="label (e.g. Shop A)" autocomplete="off" />
+            <button class="btn-ghost" id="btn-add-account">
+              <i class="fa-solid fa-plus"></i>&nbsp;Add
+            </button>
+            <button class="btn-ghost" id="btn-refresh-accounts" title="Re-read the account list from the server">
+              <i class="fa-solid fa-arrows-rotate"></i>&nbsp;Refresh
+            </button>
+          </div>
+
+          <div class="settings-actions">
+            <button class="btn-run" id="btn-save-accounts">
+              <i class="fa-solid fa-floppy-disk"></i>&nbsp;Save accounts
+            </button>
+            <span id="accounts-msg" class="dim"></span>
+          </div>
+        </div>
+
+        <!-- QR code for linking a new WhatsApp account -->
+        <div class="qr-overlay hidden" id="qr-overlay">
+          <div class="qr-panel">
+            <div class="qr-head">
+              <span class="qr-title">
+                <i class="fa-solid fa-qrcode"></i>&nbsp;
+                Link <span id="qr-account-name">—</span>
+              </span>
+              <button class="icon-btn" id="btn-qr-close" title="Close">
+                <i class="fa-solid fa-xmark"></i>
+              </button>
+            </div>
+            <div class="qr-body">
+              <img id="qr-image" class="qr-image" alt="WhatsApp QR code" />
+              <p class="dim qr-hint">
+                On the phone: <strong>WhatsApp → Linked devices → Link a device</strong>,
+                then scan this code with the phone's camera.
+              </p>
+              <p class="dim qr-hint" id="qr-error"></p>
+            </div>
+          </div>
+        </div>
+
+        <div class="card settings-card">
+          <h2><i class="fa-solid fa-plug"></i>&nbsp; WhatsApp API</h2>
+
+          <div class="field">
+            <label for="set-url">API URL</label>
+            <input id="set-url" type="text" placeholder="http://localhost:3001" />
+          </div>
+          <div class="field">
+            <label for="set-key">API Key</label>
+            <input id="set-key" type="password" placeholder="••••••••" />
+          </div>
+          <div class="field">
+            <label for="set-session">Session</label>
+            <input id="set-session" type="text" placeholder="default" />
+          </div>
+
+          <div class="field">
+            <label for="set-collect">Collect per row</label>
+            <select id="set-collect">
+              <option value="single">Single — order id, else name, else address</option>
+              <option value="all">All — order id + name + address together</option>
+            </select>
+          </div>
+
+          <div class="settings-actions">
+            <button class="btn-run" id="btn-save-settings">
+              <i class="fa-solid fa-floppy-disk"></i>&nbsp;Save
+            </button>
+            <span id="settings-msg" class="dim"></span>
+          </div>
+
+          <p class="dim settings-note">
+            Settings are persisted to <code>config.yaml</code> next to the app.
+            The OCR engine (Google Lens) is loaded on the first RUN.
+          </p>
+        </div>
+
+        <div class="card settings-card">
+          <h2><i class="fa-solid fa-cloud-arrow-down"></i>&nbsp; App updates</h2>
+          <p class="dim settings-note" style="margin-top:0;margin-bottom:14px;">
+            OrderCart checks the public GitHub repository for a newer commit.
+            Your data, settings and chats are never uploaded.
+          </p>
+
+          <div class="update-row">
+            <span>Installed</span>
+            <span class="mono" id="update-current">—</span>
+          </div>
+          <div class="update-row">
+            <span>Latest on GitHub</span>
+            <span class="mono" id="update-latest">—</span>
+          </div>
+          <div class="update-row">
+            <span>Status</span>
+            <span class="dim" id="update-status">not checked yet</span>
+          </div>
+
+          <div class="settings-actions">
+            <button class="btn-ghost" id="btn-check-updates">
+              <i class="fa-solid fa-arrows-rotate"></i>&nbsp;Check now
+            </button>
+            <button class="btn-run" id="btn-apply-update" hidden>
+              <i class="fa-solid fa-download"></i>&nbsp;Update now
+            </button>
+            <button class="btn-ghost" id="btn-open-github">
+              <i class="fa-brands fa-github"></i>&nbsp;Open GitHub
+            </button>
+            <span id="updates-msg" class="dim"></span>
+          </div>
+
+          <p class="dim settings-note">
+            <strong>Update now</strong> only works for a git clone (a source
+            run) — a built copy asks you to download the newest release.
+            Automatic checks: <code>update.check_on_start</code> in
+            <code>config.yaml</code>.
+          </p>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
