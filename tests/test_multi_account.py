@@ -109,6 +109,62 @@ class TestAccountManager:
         enabled = api._enabled_accounts()
         assert [a["name"] for a in enabled] == ["default", "sales2"]
 
+    def test_the_run_says_which_accounts_it_visits(self, tmp_path, monkeypatch):
+        """A seller with two phones needs to see which ones a run uses."""
+        api = self._api(tmp_path, monkeypatch, accounts=[
+            {"name": "gg", "label": "Andro", "enabled": True},
+            {"name": "default", "label": "Personal", "enabled": True},
+            {"name": "old", "label": "Old phone", "enabled": False},
+        ])
+        messages = []
+        visits = []
+        monkeypatch.setattr(api, "_emit_log", messages.append)
+        monkeypatch.setattr(
+            api, "_session_statuses",
+            lambda: {"gg": "WORKING", "default": "WORKING"},
+        )
+        monkeypatch.setattr(
+            api, "_run_one_account",
+            lambda account, *args: visits.append(account["name"]),
+        )
+
+        api._worker_main(1, 2, "orders.txt", "notepad", True)
+
+        text = "\n".join(messages)
+        assert visits == ["gg", "default"]
+        assert "Collecting from 2 WhatsApp account(s)" in text
+        assert "Andro (gg, WORKING)" in text
+        assert "Personal (default, WORKING)" in text
+        assert "Old phone" not in text          # unticked accounts stay out
+        assert "═══ Andro  (gg, WORKING) ═══" in text
+        assert "═══ Personal  (default, WORKING) ═══" in text
+
+    def test_an_account_that_is_not_linked_is_reported_in_the_listing(
+        self, tmp_path, monkeypatch
+    ):
+        api = self._api(tmp_path, monkeypatch, accounts=[
+            {"name": "gg", "label": "Andro", "enabled": True},
+            {"name": "default", "label": "Personal", "enabled": True},
+        ])
+        messages = []
+        visits = []
+        monkeypatch.setattr(api, "_emit_log", messages.append)
+        monkeypatch.setattr(
+            api, "_session_statuses",
+            lambda: {"gg": "WORKING", "default": "SCAN_QR_CODE"},
+        )
+        monkeypatch.setattr(
+            api, "_run_one_account",
+            lambda account, *args: visits.append(account["name"]),
+        )
+
+        api._worker_main(1, 2, "orders.txt", "notepad", True)
+
+        text = "\n".join(messages)
+        assert "Personal (default, SCAN_QR_CODE)" in text
+        assert visits == ["gg"]                 # the unlinked one is skipped
+        assert "is not linked yet" in text
+
     def test_saving_the_accounts_persists_them(self, tmp_path, monkeypatch):
         api = self._api(tmp_path, monkeypatch)
         result = api.save_whatsapp_accounts([
@@ -246,3 +302,38 @@ class TestRunOverSeveralAccounts:
         )
         api._worker_main(12988, 12990, "orders.csv", "csv", True, False)
         assert visited == []
+
+# ---------------------------------------------------------------------------
+# The Dashboard "Collecting from" strip
+# ---------------------------------------------------------------------------
+class TestDashboardAccountStrip:
+    """The page and the script must agree on the account summary elements."""
+
+    def _files(self):
+        with open(os.path.join(ROOT, "ui", "index.html"), encoding="utf-8") as fh:
+            html = fh.read()
+        with open(os.path.join(ROOT, "ui", "app.js"), encoding="utf-8") as fh:
+            script = fh.read()
+        return html, script
+
+    def test_the_strip_elements_exist(self):
+        html, script = self._files()
+        assert 'id="accounts-strip"' in html
+        for element in (
+            "accounts-chips",
+            "btn-accounts-strip-settings",
+            "accounts-dirty",
+        ):
+            assert f'id="{element}"' in html, element
+            assert f'"{element}"' in script, element
+
+    def test_the_summary_is_rendered_and_refreshed(self):
+        _html, script = self._files()
+        assert "function renderAccountSummary(" in script
+        assert "function loadAccountSummary(" in script
+        # Loaded on start and after saving the tick boxes.
+        assert "loadAccountSummary();" in script
+        assert "loadAccountSummary();\n" in script
+        # A tick that was not saved yet is called out.
+        assert "setAccountsDirty(true)" in script
+        assert "setAccountsDirty(false)" in script

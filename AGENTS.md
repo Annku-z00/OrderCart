@@ -237,8 +237,10 @@ API + OCR with fakes and run in milliseconds.
   `git pull --ff-only` — a PyInstaller build has no `.git`, so it returns
   `needs_reinstall` and the UI opens the GitHub page instead.
   Config: `update.enabled / repo / branch / check_on_start`.
-- Views: Dashboard (KPI cards, run progress bar, range + **dry-run** +
-  **reprocess** + RUN controls, Live Terminal), Orders (matte table + search +
+- Views: Dashboard (KPI cards, the **Collecting from** strip naming every
+  ticked WhatsApp account with its live status, run progress bar, range +
+  **dry-run** + **reprocess** + RUN controls, Live Terminal), Orders (matte
+  table + search +
   "Needs review" filter + order counter + badges + inline Order-ID correction +
   **Full list / Copy all / Export Excel / Export Notepad / Labels shortcut / Failed folder**),
   **Labels** (a dedicated view: printable-order picker + search + select all +

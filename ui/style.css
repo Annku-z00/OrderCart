@@ -858,6 +858,71 @@ td.cell-time  { color: var(--text-muted); font-size: 0.8rem; white-space: nowrap
   white-space: nowrap;
 }
 
+/* Dashboard strip: the accounts the next run will visit */
+.accounts-strip {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 18px;
+  margin-bottom: 18px;
+}
+
+.accounts-strip-title {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.accounts-strip-title i { color: var(--pastel-lime); }
+
+.accounts-chips {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  flex-wrap: wrap;
+  min-height: 24px;
+}
+
+.acc-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--border-subtle);
+  background: var(--bg-input);
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  white-space: nowrap;
+}
+
+.acc-chip em {
+  font-style: normal;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.72rem;
+  font-weight: 400;
+  color: var(--text-muted);
+}
+
+.acc-chip.acc-chip-off { opacity: 0.55; }
+.acc-chip.acc-chip-none { border-color: rgba(255, 126, 126, 0.45); color: #ffb3b3; }
+.acc-chip.acc-chip-none .acc-dot { background: var(--pastel-coral); }
+
+.accounts-strip-note {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.save-dirty {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--pastel-amber);
+}
+
 .accounts-add {
   display: flex;
   align-items: center;

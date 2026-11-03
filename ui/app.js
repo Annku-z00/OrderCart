@@ -1004,6 +1004,13 @@ function onSaveSettings() {
    WhatsApp accounts — tick the ones to collect from.
    -------------------------------------------------------------------- */
 let accountRows = [];   /* the accounts as the server knows them */
+let accountsDirty = false;  /* a tick changed but Save accounts was not pressed */
+
+function setAccountsDirty(dirty) {
+  accountsDirty = dirty === true;
+  const badge = $("accounts-dirty");
+  if (badge) badge.hidden = !accountsDirty;
+}
 
 function accountStatusClass(status) {
   const s = String(status || "").toUpperCase();
@@ -1039,6 +1046,7 @@ function renderAccounts(accounts) {
     );
     box.addEventListener("change", () => {
       accountRows[index].enabled = box.checked;
+      setAccountsDirty(true);
     });
     row.appendChild(box);
 
@@ -1080,6 +1088,7 @@ function renderAccounts(accounts) {
     remove.addEventListener("click", () => {
       accountRows.splice(index, 1);
       renderAccounts(accountRows);
+      setAccountsDirty(true);
     });
     row.appendChild(remove);
 
@@ -1090,7 +1099,11 @@ function renderAccounts(accounts) {
 async function loadAccounts() {
   await callBridge(async (a) => {
     const info = await a.get_whatsapp_accounts();
-    if (info) renderAccounts(info.accounts || []);
+    if (info) {
+      renderAccounts(info.accounts || []);
+      renderAccountSummary(info.accounts || []);
+      setAccountsDirty(false);
+    }
   });
 }
 
@@ -1104,12 +1117,78 @@ async function saveAccounts() {
   const msg = $("accounts-msg");
   if (res && res.ok) {
     msg.textContent = "✓ Saved";
+    setAccountsDirty(false);
     appendLog("— WhatsApp accounts saved: " +
-      payload.filter((p) => p.enabled).map((p) => p.label).join(", ") + " —");
+      (payload.filter((p) => p.enabled).map((p) => p.label).join(", ") ||
+        "none ticked") + " —");
+    loadAccountSummary();
   } else {
     msg.textContent = "✗ " + ((res && res.error) || "could not save");
   }
   setTimeout(() => { if (msg) msg.textContent = ""; }, 3500);
+}
+
+/* ---- Dashboard: the accounts the next run will actually visit ------- */
+function summaryChip(text, extraClass) {
+  const chip = document.createElement("span");
+  chip.className = "acc-chip" + (extraClass ? " " + extraClass : "");
+  chip.textContent = text;
+  return chip;
+}
+
+function renderAccountSummary(accounts) {
+  const wrap = $("accounts-chips");
+  if (!wrap) return;
+  wrap.innerHTML = "";
+
+  const rows = Array.isArray(accounts) ? accounts : [];
+  const ticked = rows.filter((a) => a.enabled === true);
+
+  if (!rows.length) {
+    wrap.appendChild(summaryChip("no account yet — add one in Settings", "acc-chip-none"));
+    return;
+  }
+  if (!ticked.length) {
+    wrap.appendChild(summaryChip("no account ticked — a run will stop", "acc-chip-none"));
+    return;
+  }
+
+  ticked.forEach((account) => {
+    const chip = document.createElement("span");
+    chip.className = "acc-chip";
+    const dot = document.createElement("span");
+    dot.className = accountStatusClass(account.status);
+    dot.title = account.status || "not linked";
+    chip.appendChild(dot);
+    chip.appendChild(document.createTextNode(account.label || account.name));
+    const code = document.createElement("em");
+    code.textContent = account.name;
+    chip.appendChild(code);
+    chip.title = [account.label || account.name, account.name,
+                  account.me, account.status].filter(Boolean).join(" · ");
+    wrap.appendChild(chip);
+  });
+
+  const note = document.createElement("span");
+  note.className = "accounts-strip-note";
+  note.textContent = rows.length > ticked.length
+    ? ticked.length + " of " + rows.length + " ticked"
+    : (ticked.length > 1 ? ticked.length + " accounts" : "");
+  if (note.textContent) wrap.appendChild(note);
+
+  if (accountsDirty) {
+    const dirty = document.createElement("span");
+    dirty.className = "save-dirty";
+    dirty.textContent = "unsaved changes in Settings";
+    wrap.appendChild(dirty);
+  }
+}
+
+async function loadAccountSummary() {
+  await callBridge(async (a) => {
+    const info = await a.get_whatsapp_accounts();
+    if (info) renderAccountSummary(info.accounts || []);
+  });
 }
 
 /* Show the QR code of one account so the seller can link the phone. */
@@ -1512,6 +1591,9 @@ document.addEventListener("DOMContentLoaded", () => {
   $("btn-add-account").addEventListener("click", onAddAccount);
   $("btn-save-accounts").addEventListener("click", saveAccounts);
   $("btn-refresh-accounts").addEventListener("click", loadAccounts);
+  $("btn-accounts-strip-settings").addEventListener("click", () =>
+    switchView("settings")
+  );
   $("btn-qr-close").addEventListener("click", closeAccountQr);
   $("qr-overlay").addEventListener("click", (e) => {
     if (e.target === $("qr-overlay")) closeAccountQr();
@@ -1606,6 +1688,9 @@ function pywebviewReady() {
     }
   });
   checkConnection(true);
+  // Which account(s) the next run will visit — filled from the same bridge
+  // call the Settings account manager uses.
+  loadAccountSummary();
 }
 
 if (window.pywebview && window.pywebview.api) {

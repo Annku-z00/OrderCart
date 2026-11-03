@@ -1625,15 +1625,30 @@ class Api:
                     "REPROCESS — chats that were already done are scanned again "
                     "(the output rows are written again, duplicates are skipped)."
                 )
-            if len(accounts) > 1:
-                self._emit_log(
-                    "Collecting from %d WhatsApp account(s): %s"
-                    % (len(accounts), ", ".join(a["label"] for a in accounts))
-                )
-
             self._failed_count = 0
             statuses = self._session_statuses()
-            for index, account in enumerate(accounts):
+
+            # Say which account(s) this run uses *before* it starts: the seller
+            # may have two phones linked and needs to know which one is ticked.
+            def _describe(account: Dict[str, Any]) -> str:
+                status = str(statuses.get(account["name"]) or "not on the server")
+                return "%s (%s, %s)" % (
+                    account["label"], account["name"], status
+                )
+
+            self._emit_log(
+                "Collecting from %d WhatsApp account(s): %s"
+                % (len(accounts), ", ".join(_describe(a) for a in accounts))
+            )
+            for account in accounts:
+                self.logger.info(
+                    "event=account_selected name=%s label=%s status=%s",
+                    account["name"],
+                    account["label"],
+                    statuses.get(account["name"]) or "missing",
+                )
+
+            for account in accounts:
                 if self._control.should_stop():
                     self._emit_log("— Stopped before the next account —")
                     break
@@ -1668,11 +1683,11 @@ class Api:
                     )
                     continue
 
-                if index:
-                    self._emit_log("")
-                    self._emit_log(
-                        "═══ %s  (%s) ═══" % (account["label"], account["name"])
-                    )
+                self._emit_log("")
+                self._emit_log(
+                    "═══ %s  (%s, %s) ═══"
+                    % (account["label"], account["name"], status)
+                )
                 self._run_one_account(
                     account, start, end, output, output_format, dry_run, reprocess
                 )

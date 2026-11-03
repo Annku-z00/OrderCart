@@ -148,6 +148,20 @@
           </div>
         </div>
 
+        <!-- Which WhatsApp accounts the next run will visit -->
+        <div class="card accounts-strip" id="accounts-strip">
+          <span class="accounts-strip-title">
+            <i class="fa-brands fa-whatsapp"></i>&nbsp;Collecting from
+          </span>
+          <div class="accounts-chips" id="accounts-chips">
+            <span class="dim">reading the accounts…</span>
+          </div>
+          <button class="btn-mini" id="btn-accounts-strip-settings"
+                  title="Open the account manager in Settings">
+            Change
+          </button>
+        </div>
+
         <!-- Run progress (index / total pushed by the orchestrator) -->
         <div class="card progress-card" id="progress-card" hidden>
           <div class="progress-head">
@@ -559,7 +573,8 @@
           <h2><i class="fa-solid fa-users"></i>&nbsp; WhatsApp accounts</h2>
           <p class="dim settings-note" style="margin-top:0;margin-bottom:14px;">
             Tick every WhatsApp account you want to collect orders from.
-            A run then visits them one after the other.
+            A run then visits them one after the other — the Dashboard shows
+            the ticked list as <strong>Collecting from</strong>.
           </p>
 
           <div class="accounts-list" id="accounts-list">
@@ -582,6 +597,9 @@
               <i class="fa-solid fa-floppy-disk"></i>&nbsp;Save accounts
             </button>
             <span id="accounts-msg" class="dim"></span>
+            <span class="save-dirty" id="accounts-dirty" hidden>
+              ● Unsaved changes — ticked boxes take effect after Save
+            </span>
           </div>
         </div>
 
@@ -623,6 +641,10 @@
             <label for="set-session">Session</label>
             <input id="set-session" type="text" placeholder="default" />
           </div>
+          <p class="dim settings-note" style="margin-top:-6px;">
+            Used only when the account list above is empty. With two or more
+            accounts, every ticked one is scanned and this field is ignored.
+          </p>
 
           <div class="field">
             <label for="set-collect">Collect per row</label>
