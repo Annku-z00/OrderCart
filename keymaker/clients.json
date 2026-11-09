@@ -1,0 +1,21 @@
+{
+  "schema": 1,
+  "key_id": "6837cbda1c0daee2",
+  "updated_at": "2026-11-09 23:47:07",
+  "clients": [
+    {
+      "id": "c_42cecdff",
+      "name": "jeetu",
+      "contact": "",
+      "plan": "monthly",
+      "status": "active",
+      "device_id": "",
+      "created_at": "2026-11-09 23:47:07",
+      "expires_at": "2026-12-09",
+      "notes": "",
+      "key_hash": "74e7550a9e4714ab63e8437a5116117afa4b9e48a3554cd2c157d32ed463a0a6",
+      "key_hint": "OC-****-****-E2N6",
+      "key_version": 1
+    }
+  ]
+}
