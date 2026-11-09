@@ -1,6 +1,21 @@
 {
   "schema": 1,
   "key_id": "6837cbda1c0daee2",
-  "updated_at": "2026-11-09 23:47:46",
-  "clients": []
+  "updated_at": "2026-11-09 23:48:12",
+  "clients": [
+    {
+      "id": "c_fa7b4cf5",
+      "name": "jeetu",
+      "contact": "87878787",
+      "plan": "monthly",
+      "status": "active",
+      "device_id": "",
+      "created_at": "2026-11-09 23:48:12",
+      "expires_at": "2026-12-09",
+      "notes": "5454545",
+      "key_hash": "6e924e7eaf23b141f440b904569c8d1dcf9e4737f296f896cc4ea29fcd2f3f68",
+      "key_hint": "OC-****-****-4ZDE",
+      "key_version": 1
+    }
+  ]
 }
