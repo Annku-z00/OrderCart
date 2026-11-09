@@ -1,7 +1,7 @@
 {
   "schema": 1,
   "key_id": "6837cbda1c0daee2",
-  "updated_at": "2026-11-09 23:48:12",
+  "updated_at": "2026-11-10 00:48:43",
   "clients": [
     {
       "id": "c_fa7b4cf5",
@@ -15,6 +15,20 @@
       "notes": "5454545",
       "key_hash": "6e924e7eaf23b141f440b904569c8d1dcf9e4737f296f896cc4ea29fcd2f3f68",
       "key_hint": "OC-****-****-4ZDE",
+      "key_version": 1
+    },
+    {
+      "id": "c_5ba0b9cb",
+      "name": "jeetu",
+      "contact": "",
+      "plan": "monthly",
+      "status": "active",
+      "device_id": "",
+      "created_at": "2026-11-10 00:48:43",
+      "expires_at": "2026-12-10",
+      "notes": "",
+      "key_hash": "5e880ae412711ab24af095653eeeef364a3dd802a55a4b02191f670703d36eff",
+      "key_hint": "OC-****-****-2QE6",
       "key_version": 1
     }
   ]

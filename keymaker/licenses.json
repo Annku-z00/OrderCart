@@ -9,11 +9,20 @@
         "name": "jeetu",
         "plan": "monthly",
         "status": "active"
+      },
+      {
+        "client_id": "c_5ba0b9cb",
+        "expires_at": "2026-12-10",
+        "hash": "5e880ae412711ab24af095653eeeef364a3dd802a55a4b02191f670703d36eff",
+        "issued_at": "2026-11-10 00:48:43",
+        "name": "jeetu",
+        "plan": "monthly",
+        "status": "active"
       }
     ],
-    "generated_at": "2026-11-09T23:48:30",
+    "generated_at": "2026-11-10T00:48:56",
     "kind": "ordercart/licence-ledger",
     "v": 1
   },
-  "signature": "Y8E8+qGOxasiPLl2kIJWJfa9TojCqkI4vcdO1c3UEFdqxBfv6i4AoqOxE7o9R1mgvmPgeLXHATvLG1Hfd/Y6BQ=="
+  "signature": "PdMo4EGkrY3mMBD7rb6uZhhcqqp4EEOfWRJQojQDkAqbA4VMLvltDnYw+O9MYuPo3wFaDRQpU35e+8UUJXFsCw=="
 }
