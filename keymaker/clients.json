@@ -1,6 +1,21 @@
 {
   "schema": 1,
   "key_id": "6837cbda1c0daee2",
-  "updated_at": "2026-11-10 13:00:31",
-  "clients": []
+  "updated_at": "2026-11-10 13:01:39",
+  "clients": [
+    {
+      "id": "c_b0cadd68",
+      "name": "hh",
+      "contact": "",
+      "plan": "monthly",
+      "status": "active",
+      "device_id": "",
+      "created_at": "2026-11-10 13:01:39",
+      "expires_at": "2026-12-10",
+      "notes": "",
+      "key_hash": "217b1b5c282572f61225a83d76f05d21208e269d1c3eef355f6108e297d6f73b",
+      "key_hint": "OC-****-****-D7XT",
+      "key_version": 1
+    }
+  ]
 }
